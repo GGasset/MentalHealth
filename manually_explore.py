@@ -67,7 +67,7 @@ def select_question(cursor: Cursor, survey_id: int) -> tuple[int, str]:
         question_id = result[0]
 
         cursor.execute(f'SELECT SurveyID, QuestionID FROM Answer WHERE SurveyID = {survey_id} AND QuestionID = {question_id}')
-        if len(cursor.fetchall()) is 0:
+        if len(cursor.fetchall()) == 0:
             continue
 
         ids.append(question_id)
