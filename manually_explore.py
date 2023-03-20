@@ -30,7 +30,9 @@ def main():
 
     try:
         survey_id = select_survey(mental_health)
-        question_id = select_question(mental_health)
+        question_id, question_text = select_question(mental_health, survey_id)
+        answers = get_answers(mental_health, survey_id, question_id)
+        display_answers(question_id, question_text, answers)
     finally:
         mental_health_connection.close()
         print('Connection closed.')
@@ -56,13 +58,18 @@ def select_survey(cursor: Cursor) -> int:
         
         print('The selected year doesn\'t exists in the data.')
                 
-def select_question(cursor: Cursor) -> int:
+def select_question(cursor: Cursor, survey_id: int) -> tuple[int, str]:
     ids = []
     cursor.execute('SELECT questionid, questiontext FROM Question')
     results = cursor.fetchall()
     print('Naming questions...')
     for result in results:
         question_id = result[0]
+
+        cursor.execute(f'SELECT SurveyID, QuestionID FROM Answer WHERE SurveyID = {survey_id} AND QuestionID = {question_id}')
+        if len(cursor.fetchall()) is 0:
+            continue
+
         ids.append(question_id)
         print(f'{question_id}. {result[1]}')
     while True:
@@ -73,8 +80,17 @@ def select_question(cursor: Cursor) -> int:
 
         cursor.execute(f'SELECT questiontext FROM Question WHERE questionid = {selected_id}')
         result = cursor.fetchall()
-        print('Selected "' + result[0][0] + '"')
-        return selected_id
+        question_text = result[0][0]
+        print(f'Selected "{question_text}" ')
+        return (selected_id, question_text)
+    
+def get_answers(cursor: Cursor, survey_id: int, question_id: int) -> list[str]:
+    cursor.execute(f'SELECT AnswerText From Answer WHERE SurveyID = {survey_id} AND QuestionID = {question_id}')
+    results = cursor.fetchall()
+    answers = []
+    for answer in results:
+        answers.append(answer[0])
+    return answers
 
 if __name__ == '__main__':
     main()
