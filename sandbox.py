@@ -30,3 +30,4 @@ try:
     input()
 finally:
     mental_health.close()
+    print('Database closed.')
